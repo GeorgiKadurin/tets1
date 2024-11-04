@@ -6,7 +6,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("jar4ik/jenapp")
+                    dockerImage = docker.build("gkadurin/jenapp")
                 }
             }
         }
