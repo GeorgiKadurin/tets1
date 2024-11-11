@@ -2,34 +2,50 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_HUB_CREDENTIALS = 'docker-hub-credentials-id'  // Замените на ваш ID учетных данных
+        IMAGE_NAME = 'gkadurin/jenapp'  // Название вашего Docker образа
+        DOCKERFILE_PATH = '/home/georgi/jenapp'  // Путь к папке с Dockerfile
+    }
+
     stages {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("gkadurin/jenapp")
+                    echo "Building Docker image from ${DOCKERFILE_PATH}..."
+                    // Используем полный путь к Dockerfile
+                    sh "docker build -t ${IMAGE_NAME} ${DOCKERFILE_PATH}"
                 }
             }
         }
-        stage('Test') {
+
+        stage('Run Tests') {
             steps {
                 script {
-                    dockerImage.inside {
-                        sh 'npm test'
+                    echo "Running tests on the Docker image..."
+                    // Команда для запуска тестов (например, с использованием контейнера)
+                    // Убедитесь, что у вас есть тесты для запуска в контейнере
+                    sh "docker run --rm ${IMAGE_NAME} test-command"  // Замените на вашу команду для тестов
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    echo "Pushing Docker image to Docker Hub..."
+                    withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}"
+                        sh "docker push ${IMAGE_NAME}"
                     }
                 }
             }
         }
-        stage('Push to Docker Hub') {
-            when {
-                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
-            }
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        dockerImage.push("latest")
-                    }
-                }
-            }
+    }
+
+    post {
+        always {
+            cleanWs()  // Очищаем рабочее пространство после выполнения пайплайна
         }
     }
 }
