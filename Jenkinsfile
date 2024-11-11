@@ -6,7 +6,7 @@ pipeline {
         stage('Сборка Docker Image') {
             steps {
                 script {
-                   sh 'docker build -t "mercurybigpencil/hello-world-app" .'
+                   sh 'docker build -t "gkadurin/jenapp" .'
                 }
             }
         }
@@ -20,8 +20,8 @@ pipeline {
         stage('Загрузка в Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('https://registry-1.docker.io/', 'dockerhub-credentials-id') {
-                        docker.image('mercurybigpencil/hello-world-app').push('latest')
+                    docker.withRegistry('https://registry-1.docker.io/', 'docker-hub-credentials-id') {
+                        docker.image('gkadurin/jenapp').push('latest')
                     }
                 }
             }
